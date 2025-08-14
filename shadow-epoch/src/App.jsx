@@ -1,78 +1,108 @@
-import { motion } from "framer-motion";
-import { useSelector, useDispatch } from "react-redux";
-import { movePlayer, spawnOrb } from "./features/player/playerSlice";
-import { useEffect } from "react";
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  startGame,
+  resetGame,
+  movePlayer,
+  spawnEnemy,
+  moveEnemy,
+  spawnOrb,
+  removeOrb,
+  collectOrb,
+  tick,
+} from "./redux/gameSlice";
+import Modal from "./components/Modal";
 
 export default function App() {
   const dispatch = useDispatch();
-  const { x, y, shadowX, shadowY, orbs, score } = useSelector(
-    (state) => state.player
-  );
+  const {
+    player,
+    enemy,
+    orb,
+    score,
+    timeSurvived,
+    difficulty,
+    gameOver,
+    gameStarted,
+    enemyVisible,
+  } = useSelector((state) => state.game);
 
-  // Spawn orbs every 2 seconds
+  // Keyboard controls
   useEffect(() => {
+    const handleKey = (e) => {
+      if (!gameStarted || gameOver) return;
+      const moves = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] };
+      if (moves[e.key]) {
+        const [dx, dy] = moves[e.key];
+        dispatch(movePlayer({ x: player.x + dx, y: player.y + dy }));
+        dispatch(collectOrb());
+      }
+    };
+    window.addEventListener("keydown", handleKey);
+    return () => window.removeEventListener("keydown", handleKey);
+  }, [player, gameStarted, gameOver, dispatch]);
+
+  // Game loop
+  useEffect(() => {
+    if (!gameStarted) return;
     const interval = setInterval(() => {
-      dispatch(spawnOrb());
-    }, 2000);
+      dispatch(tick());
+      if (timeSurvived === 10) dispatch(spawnEnemy());
+      if (enemyVisible) dispatch(moveEnemy());
+      if (timeSurvived % 20 === 0 && timeSurvived !== 0) dispatch(spawnOrb());
+      if (timeSurvived % 20 === 10) dispatch(removeOrb());
+    }, 1000);
     return () => clearInterval(interval);
-  }, [dispatch]);
+  }, [dispatch, gameStarted, timeSurvived, enemyVisible]);
+
+  const renderCell = (row, col) => {
+    const isPlayer = player.x === col && player.y === row;
+    const isEnemy = enemyVisible && enemy.x === col && enemy.y === row;
+    const isOrb = orb && orb.x === col && orb.y === row;
+    return (
+      <div
+        key={`${row}-${col}`}
+        style={{
+          width: 40,
+          height: 40,
+          backgroundColor: isPlayer ? "blue" : isEnemy ? "red" : isOrb ? "gold" : "#292930",
+        }}
+      />
+    );
+  };
 
   return (
-    <div
-      style={{
-        height: "100vh",
-        background: "#111",
-        color: "white",
-        overflow: "hidden",
-        position: "relative",
-      }}
-      tabIndex={0}
-      onKeyDown={(e) => dispatch(movePlayer(e.key))}
-    >
-      {/* Score HUD */}
-      <div style={{ padding: 20, fontSize: 24 }}>Score: {score}</div>
+    <div style={{ textAlign: "center", padding: 20, fontFamily: "Arial" }}>
+      <h1>Survival Game</h1>
+      {!gameStarted && <button onClick={() => dispatch(startGame())}>Start Game</button>}
 
-      {/* Orbs */}
-      {orbs.map((orb, index) => (
-        <motion.div
-          key={index}
-          animate={{ x: orb.x, y: orb.y }}
-          style={{
-            width: 20,
-            height: 20,
-            borderRadius: "50%",
-            background: "gold",
-            position: "absolute",
-          }}
-        />
-      ))}
+      {gameStarted && !gameOver && (
+        <>
+          <p>Score: {score}</p>
+          <p>Time Survived: {timeSurvived}s</p>
+          <p>Difficulty: {difficulty}</p>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(10, 40px)",
+              gap: 2,
+              justifyContent: "center",
+              marginTop: 20,
+            }}
+          >
+            {Array.from({ length: 10 }).map((_, row) =>
+              Array.from({ length: 10 }).map((_, col) => renderCell(row, col))
+            )}
+          </div>
+        </>
+      )}
 
-      {/* Player */}
-      <motion.div
-        animate={{ x, y }}
-        transition={{ type: "spring", stiffness: 200, damping: 20 }}
-        style={{
-          width: 40,
-          height: 40,
-          borderRadius: "50%",
-          background: "cyan",
-          position: "absolute",
-        }}
-      />
-
-      {/* Shadow Clone */}
-      <motion.div
-        animate={{ x: shadowX, y: shadowY }}
-        transition={{ type: "spring", stiffness: 200, damping: 20 }}
-        style={{
-          width: 40,
-          height: 40,
-          borderRadius: "50%",
-          background: "purple",
-          opacity: 0.5,
-          position: "absolute",
-        }}
-      />
+      {gameOver && (
+        <Modal title="💀 Game Over" onClose={() => dispatch(resetGame())}>
+          <p>Score: {score}</p>
+          <p>Time Survived: {timeSurvived}s</p>
+        </Modal>
+      )}
     </div>
   );
 }
