@@ -1,31 +1,11 @@
 import React, { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  startGame,
-  resetGame,
-  movePlayer,
-  spawnEnemy,
-  moveEnemy,
-  spawnOrb,
-  removeOrb,
-  collectOrb,
-  tick,
-} from "./redux/gameSlice";
+import { startGame, resetGame, movePlayer, spawnEnemy, moveEnemy, spawnOrb, removeOrb, collectOrb, tick,} from "./redux/gameSlice";
 import Modal from "./components/Modal";
 
 export default function App() {
   const dispatch = useDispatch();
-  const {
-    player,
-    enemy,
-    orb,
-    score,
-    timeSurvived,
-    difficulty,
-    gameOver,
-    gameStarted,
-    enemyVisible,
-  } = useSelector((state) => state.game);
+  const {player, enemy, orb, score, timeSurvived, difficulty, gameOver, gameStarted, enemyVisible, } = useSelector((state) => state.game);
 
   // Keyboard controls
   useEffect(() => {
@@ -47,7 +27,7 @@ export default function App() {
     if (!gameStarted) return;
     const interval = setInterval(() => {
       dispatch(tick());
-      if (timeSurvived === 10) dispatch(spawnEnemy());
+      if (timeSurvived === 1) dispatch(spawnEnemy());
       if (enemyVisible) dispatch(moveEnemy());
       if (timeSurvived % 20 === 0 && timeSurvived !== 0) dispatch(spawnOrb());
       if (timeSurvived % 20 === 10) dispatch(removeOrb());
