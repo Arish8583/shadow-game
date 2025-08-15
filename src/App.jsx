@@ -61,6 +61,7 @@ export default function App() {
           <p>Score: {score}</p>
           <p>Time Survived: {timeSurvived}s</p>
           <p>Difficulty: {difficulty}</p>
+          <div className="instructions"><strong>instructions:</strong> 🎮 Move: ↑, ↓, ←, → </div>
           <div
             style={{
               display: "grid",

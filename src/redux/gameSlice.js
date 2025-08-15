@@ -2,13 +2,18 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const BOARD_SIZE = 10;
 
+// Helper function to get random position
 const getRandomPosition = () => ({
   x: Math.floor(Math.random() * BOARD_SIZE),
   y: Math.floor(Math.random() * BOARD_SIZE),
 });
 
+// Audio files (place them in public/sounds/)
+const collectAudio = new Audio("/sounds/collect.wav");
+const gameOverAudio = new Audio("/sounds/gameover.wav");
+
 const initialState = {
-  player: { x: 0, y: 0 },
+  player: { x: 0, y: 0, score: 0 },
   enemy: { x: 9, y: 9 },
   orb: null,
   score: 0,
@@ -30,7 +35,7 @@ const gameSlice = createSlice({
       state.difficulty = 1;
       state.enemyVisible = false;
       state.gameOver = false;
-      state.player = { x: 0, y: 0 };
+      state.player = { x: 0, y: 0, score: 0 };
       state.enemy = { x: 9, y: 9 };
       state.orb = null;
     },
@@ -53,9 +58,10 @@ const gameSlice = createSlice({
         if (state.enemy.y < state.player.y) state.enemy.y += 1;
         else if (state.enemy.y > state.player.y) state.enemy.y -= 1;
 
-        // Check collision
+        // Collision → Game over
         if (state.enemy.x === state.player.x && state.enemy.y === state.player.y) {
           state.gameOver = true;
+          gameOverAudio.play(); // Play game over sound
         }
       }
     },
@@ -69,6 +75,7 @@ const gameSlice = createSlice({
       if (state.orb && state.orb.x === state.player.x && state.orb.y === state.player.y) {
         state.score += 10;
         state.orb = null;
+        collectAudio.play(); // Play orb collection sound
       }
     },
     tick(state) {

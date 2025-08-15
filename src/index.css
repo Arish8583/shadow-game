@@ -164,3 +164,50 @@ button:hover {
   cursor: pointer;
   font-weight: bold;
 }
+
+
+
+/* Player animation - pulse */
+.player {
+  background-color: blue;
+  animation: pulse 1s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+/* Enemy animation - shake */
+.enemy {
+  background-color: red;
+  animation: shake 0.5s infinite;
+}
+
+@keyframes shake {
+  0% { transform: translate(0,0); }
+  25% { transform: translate(2px, 0); }
+  50% { transform: translate(-2px, 0); }
+  75% { transform: translate(2px, 0); }
+  100% { transform: translate(0,0); }
+}
+
+/* Orb animation - glow */
+.orb {
+  background-color: gold;
+  border-radius: 50%;
+  animation: glow 1.5s infinite alternate;
+}
+
+@keyframes glow {
+  0% { box-shadow: 0 0 5px gold; }
+  100% { box-shadow: 0 0 20px gold; }
+}
+
+
+.instructions {
+    max-width: 400px;
+    margin: auto;
+    display: block;
+  }
